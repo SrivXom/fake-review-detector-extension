@@ -1,5 +1,5 @@
 import os
-import requests
+import gdown
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -9,26 +9,22 @@ from nltk.stem import PorterStemmer, WordNetLemmatizer
 from nltk import word_tokenize
 import uvicorn
 
-MODEL_URL = "https://drive.google.com/uc?export=download&id=1MaQ2BA7RA6hX0FKdSIMET6vFrwh1Jvr9"
+# 📥 Download model if not already present
+MODEL_URL = "https://drive.google.com/uc?id=1vz0tedZSpl8freKzVSNGstDjgVusDIPV"
 MODEL_PATH = "tfidf_voting_model.pkl"
 
-# Download model if not already present
 if not os.path.exists(MODEL_PATH):
     print("📥 Downloading model from Google Drive...")
-    with requests.get(MODEL_URL, stream=True) as r:
-        r.raise_for_status()
-        with open(MODEL_PATH, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=8192):
-                f.write(chunk)
+    gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
     print("✅ Model downloaded.")
 
-# ✅ Load model once
+# ✅ Load model
 model = joblib.load(MODEL_PATH)
 
-# ⬇️ FIRST: Create the FastAPI app
+# 🔧 Initialize FastAPI app
 app = FastAPI()
 
-# ⬇️ THEN: Add CORS middleware
+# 🌐 Allow CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -37,12 +33,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Download NLTK data (only once)
+# 🧠 Download NLTK data
 nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('wordnet')
 
-# Initialize preprocessing tools
+# 🧹 Text cleaner
 stop_words = set(stopwords.words('english'))
 stemmer = PorterStemmer()
 lemmatizer = WordNetLemmatizer()
@@ -55,9 +51,11 @@ def clean_text(text):
     lemmatized = [lemmatizer.lemmatize(word) for word in stemmed]
     return ' '.join(lemmatized)
 
+# 📨 Request model
 class ReviewRequest(BaseModel):
     review: str
 
+# 🔍 Predict endpoint
 @app.post("/predict")
 def predict_review(request: ReviewRequest):
     cleaned = clean_text(request.review)
@@ -70,5 +68,6 @@ def predict_review(request: ReviewRequest):
         "fake_probability": round(fake_prob, 4)
     }
 
+# 🖥️ Local dev server
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=5000, reload=True)
