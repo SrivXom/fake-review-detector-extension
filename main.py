@@ -1,3 +1,5 @@
+import os
+import requests
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -6,6 +8,23 @@ from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer, WordNetLemmatizer
 from nltk import word_tokenize
 import uvicorn
+
+
+MODEL_URL = "https://drive.google.com/uc?export=download&id=1MaQ2BA7RA6hX0FKdSIMET6vFrwh1Jvr9"
+MODEL_PATH = "tfidf_voting_model.pkl"
+
+# Download model if not already present
+if not os.path.exists(MODEL_PATH):
+    print("📥 Downloading model from Google Drive...")
+    with requests.get(MODEL_URL, stream=True) as r:
+        r.raise_for_status()
+        with open(MODEL_PATH, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                f.write(chunk)
+    print("✅ Model downloaded.")
+
+model = joblib.load(MODEL_PATH)
+
 
 # ⬇️ FIRST: Create the FastAPI app
 app = FastAPI()
