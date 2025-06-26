@@ -34,7 +34,9 @@ app.add_middleware(
 )
 
 # 🧠 Download NLTK data
+
 nltk.download('punkt')
+nltk.download('punkt_tab')   # ⬅️ Add this
 nltk.download('stopwords')
 nltk.download('wordnet')
 
