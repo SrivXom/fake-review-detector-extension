@@ -9,7 +9,6 @@ from nltk.stem import PorterStemmer, WordNetLemmatizer
 from nltk import word_tokenize
 import uvicorn
 
-
 MODEL_URL = "https://drive.google.com/uc?export=download&id=1MaQ2BA7RA6hX0FKdSIMET6vFrwh1Jvr9"
 MODEL_PATH = "tfidf_voting_model.pkl"
 
@@ -23,8 +22,8 @@ if not os.path.exists(MODEL_PATH):
                 f.write(chunk)
     print("✅ Model downloaded.")
 
+# ✅ Load model once
 model = joblib.load(MODEL_PATH)
-
 
 # ⬇️ FIRST: Create the FastAPI app
 app = FastAPI()
@@ -55,9 +54,6 @@ def clean_text(text):
     stemmed = [stemmer.stem(word) for word in tokens]
     lemmatized = [lemmatizer.lemmatize(word) for word in stemmed]
     return ' '.join(lemmatized)
-
-# Load model
-model = joblib.load("tfidf_voting_model.pkl")
 
 class ReviewRequest(BaseModel):
     review: str
