@@ -4,3 +4,4 @@ nltk
 joblib
 scikit-learn
 pandas
+requests
